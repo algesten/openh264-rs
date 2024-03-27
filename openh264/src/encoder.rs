@@ -180,6 +180,7 @@ pub struct EncoderConfig {
     rate_control_mode: RateControlMode,
     sps_pps_strategy: SpsPpsStrategy,
     multiple_thread_idc: u16,
+    intra_period: u32,
 }
 
 impl EncoderConfig {
@@ -197,6 +198,7 @@ impl EncoderConfig {
             rate_control_mode: Default::default(),
             sps_pps_strategy: Default::default(),
             multiple_thread_idc: 0,
+            intra_period: 0,
         }
     }
 
@@ -247,6 +249,16 @@ impl EncoderConfig {
         self.multiple_thread_idc = threads;
         self
     }
+
+    /// Set the intra (I- aka keyframe) frame period.
+    ///
+    /// Defaults to 0 which means the user must manually force a keyframe when so desired.
+    ///
+    /// A setting of 2 would mean a frame pattern of `I-P-I-P-I-P-I-P`
+    pub fn set_intra_period(mut self, intra_period: u32) -> Self {
+        self.intra_period = intra_period;
+        self
+    }
 }
 
 /// An [OpenH264](https://github.com/cisco/openh264) encoder.
@@ -277,6 +289,7 @@ impl Encoder {
             params.fMaxFrameRate = config.max_frame_rate;
             params.eSpsPpsIdStrategy = config.sps_pps_strategy.to_c();
             params.iMultipleThreadIdc = config.multiple_thread_idc;
+            params.uiIntraPeriod = config.intra_period;
             raw_api.initialize_ext(&params).ok()?;
 
             raw_api.set_option(ENCODER_OPTION_TRACE_LEVEL, addr_of_mut!(config.debug).cast()).ok()?;
