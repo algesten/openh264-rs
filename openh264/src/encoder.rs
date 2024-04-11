@@ -374,7 +374,7 @@ impl Encoder {
         params.iMultipleThreadIdc = self.config.multiple_thread_idc;
 
         unsafe {
-            if self.previous_dimensions.is_none() {
+            if !self.is_initialized() {
                 // First time we call initialize_ext
                 self.raw_api.initialize_ext(&params).ok()?;
                 self.raw_api.set_option(ENCODER_OPTION_TRACE_LEVEL, addr_of_mut!(self.config.debug).cast()).ok()?;
@@ -389,6 +389,10 @@ impl Encoder {
         }
 
         Ok(())
+    }
+
+    fn is_initialized(&self) -> bool {
+        self.previous_dimensions.is_some()
     }
 
     /// Obtain the raw API for advanced use cases.
